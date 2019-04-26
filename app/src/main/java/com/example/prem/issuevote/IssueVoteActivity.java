@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class IssueVoteActivity extends AppCompatActivity {
@@ -33,6 +34,15 @@ public class IssueVoteActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        TextView alarmRun = findViewById(R.id.issue_alarm_run);
+        int alarmRunCount = IssueDataStore.getAlarmRunCount(this);
+        alarmRun.setText(String.format("Alarm Run -- %d", alarmRunCount));
     }
 
     @Override
@@ -63,12 +73,13 @@ public class IssueVoteActivity extends AppCompatActivity {
 
             int alarmType = AlarmManager.ELAPSED_REALTIME;
             final int FIFTEEN_SEC_MILLIS = 15000;
+            final int THIRTY_MIN_MILLIS = 30 * 60 * 1000;
 
             // setRepeating takes a start delay and period between alarms as arguments.
             // The below code fires after 15 seconds, and repeats every 15 seconds.  This is very
             // useful for demonstration purposes, but horrendous for production.  Don't be that dev.
             alarmManager.setRepeating(alarmType, SystemClock.elapsedRealtime() + FIFTEEN_SEC_MILLIS,
-                    FIFTEEN_SEC_MILLIS, pendingIntent);
+                    THIRTY_MIN_MILLIS, pendingIntent);
             // END_INCLUDE (configure_alarm_manager);
             Log.i("RepeatingAlarmFragment", "Alarm set.");
 

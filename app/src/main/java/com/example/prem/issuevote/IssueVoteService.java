@@ -19,6 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -43,6 +45,11 @@ public class IssueVoteService extends IntentService {
     // TODO: Rename parameters
     private static final String EXTRA_PARAM1 = "com.example.prem.issuevote.extra.PARAM1";
     private static final String EXTRA_PARAM2 = "com.example.prem.issuevote.extra.PARAM2";
+
+    private static final String DATA_NONCE_REGEX = ".*data-nonce=\"(.*?)\".*";
+    private static final Pattern DATA_NONCE_MATCHER = Pattern.compile(DATA_NONCE_REGEX);
+
+    private static final String TAG = IssueVoteService.class.getName();
 
     public IssueVoteService() {
         super("IssueVoteService");
@@ -110,6 +117,9 @@ public class IssueVoteService extends IntentService {
             // Install the all-trusting host verifier
             HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 
+            String nonceId = getNonceId();
+
+            Log.i(TAG, "Nonce id obtained : " + nonceId);
 
             URL url = new URL("https://cutebabes.in/wp-admin/admin-ajax.php");
 
@@ -122,7 +132,9 @@ public class IssueVoteService extends IntentService {
 
             OutputStream outputStream = myConn.getOutputStream();
             BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
-            bufferedWriter.write("action=vote_for_photo&photo_id=1056&nonce_id=70f9849552");
+            String postData = "action=vote_for_photo&photo_id=1058&nonce_id=" + nonceId;
+            Log.i(TAG, "postdata: " + postData);
+            bufferedWriter.write(postData);
             bufferedWriter.flush();
             bufferedWriter.close();
             outputStream.close();
@@ -144,23 +156,52 @@ public class IssueVoteService extends IntentService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        IssueDataStore.registerAlarmRun(this);
     }
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionFoo(String param1, String param2) {
-        // TODO: Handle action Foo
-        throw new UnsupportedOperationException("Not yet implemented");
+    private String getNonceId() {
+        try {
+            URL url = new URL("https://cutebabes.in/april-2019/?contest=photo-detail&photo_id=1058");
+
+            HttpsURLConnection myConn = (HttpsURLConnection) url.openConnection();
+            myConn.setRequestMethod("GET");
+            myConn.setConnectTimeout(15000);
+            myConn.setReadTimeout(10000);
+            myConn.setDoInput(true);
+            myConn.setDoOutput(true);
+
+            myConn.connect();
+
+            Log.i("IssueVoteService", "Connected to the base page");
+
+            InputStream inputStream = myConn.getInputStream();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                Log.i("IssueVoteService", "read site data: " + line);
+                if (line.matches(".*data-nonce.*")) {
+                    Log.i(TAG, "matching data nonce " + line);
+                }
+                Matcher matcher = DATA_NONCE_MATCHER.matcher(line);
+                if (matcher.matches()) {
+                    if (matcher.groupCount() > 0) {
+                        String nonceId = matcher.group(1);
+                        Log.i(TAG, "found data nonce id: "  + nonceId);
+                        return nonceId;
+                    }
+                }
+            }
+
+            bufferedReader.close();
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            Log.e(TAG, "Error getting nonce id", e);
+        }
+
+        return "";
     }
 
-    /**
-     * Handle action Baz in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionBaz(String param1, String param2) {
-        // TODO: Handle action Baz
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
 }
