@@ -4,6 +4,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
@@ -73,13 +74,16 @@ public class IssueVoteActivity extends AppCompatActivity {
 
             int alarmType = AlarmManager.ELAPSED_REALTIME;
             final int FIFTEEN_SEC_MILLIS = 15000;
+            final int ONE_MINUTE_MILLIS = 60 * 1000;
             final int THIRTY_MIN_MILLIS = 30 * 60 * 1000;
 
-            // setRepeating takes a start delay and period between alarms as arguments.
-            // The below code fires after 15 seconds, and repeats every 15 seconds.  This is very
-            // useful for demonstration purposes, but horrendous for production.  Don't be that dev.
-            alarmManager.setRepeating(alarmType, SystemClock.elapsedRealtime() + FIFTEEN_SEC_MILLIS,
-                    THIRTY_MIN_MILLIS, pendingIntent);
+
+            if (Build.VERSION.SDK_INT >= 23) {
+                alarmManager.setExactAndAllowWhileIdle(alarmType, SystemClock.elapsedRealtime() + ONE_MINUTE_MILLIS, pendingIntent);
+            }
+            else {
+                alarmManager.setExact(alarmType, SystemClock.elapsedRealtime() + ONE_MINUTE_MILLIS, pendingIntent);
+            }
             // END_INCLUDE (configure_alarm_manager);
             Log.i("RepeatingAlarmFragment", "Alarm set.");
 

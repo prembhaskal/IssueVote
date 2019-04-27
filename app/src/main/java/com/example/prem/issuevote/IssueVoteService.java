@@ -125,8 +125,8 @@ public class IssueVoteService extends IntentService {
 
             HttpsURLConnection myConn = (HttpsURLConnection) url.openConnection();
             myConn.setRequestMethod("POST");
-            myConn.setConnectTimeout(15000);
-            myConn.setReadTimeout(10000);
+            myConn.setConnectTimeout(30000);
+            myConn.setReadTimeout(30000);
             myConn.setDoInput(true);
             myConn.setDoOutput(true);
 
@@ -166,8 +166,8 @@ public class IssueVoteService extends IntentService {
 
             HttpsURLConnection myConn = (HttpsURLConnection) url.openConnection();
             myConn.setRequestMethod("GET");
-            myConn.setConnectTimeout(15000);
-            myConn.setReadTimeout(10000);
+            myConn.setConnectTimeout(30000);
+            myConn.setReadTimeout(30000);
             myConn.setDoInput(true);
             myConn.setDoOutput(true);
 
